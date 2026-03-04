@@ -38,7 +38,19 @@ export const reorderSchema = z.object({
   ),
 });
 
+export const securitySchema = z
+  .object({
+    email: z.string().email("Email inválido"),
+    currentPassword: z.string().min(1, "Senha atual é obrigatória"),
+    newPassword: z.string().optional(),
+  })
+  .refine(
+    (data) => !data.newPassword || data.newPassword.length >= 6,
+    { message: "Mínimo 6 caracteres", path: ["newPassword"] }
+  );
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ProfileInput = z.infer<typeof profileSchema>;
 export type ProjectInput = z.infer<typeof projectSchema>;
 export type ContactInput = z.infer<typeof contactSchema>;
+export type SecurityInput = z.infer<typeof securitySchema>;
