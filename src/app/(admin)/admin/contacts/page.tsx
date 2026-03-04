@@ -11,6 +11,8 @@ import {
   Mail,
   Instagram,
   ExternalLink,
+  Pencil,
+  X,
 } from "lucide-react";
 import type { Contact } from "@prisma/client";
 
@@ -27,6 +29,13 @@ export default function ContactsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
 
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editType, setEditType] = useState("");
+  const [editLabel, setEditLabel] = useState("");
+  const [editValue, setEditValue] = useState("");
+  const [editUrl, setEditUrl] = useState("");
+
   // New contact form
   const [newType, setNewType] = useState<string>("WHATSAPP");
   const [newLabel, setNewLabel] = useState("");
@@ -40,6 +49,48 @@ export default function ContactsPage() {
       .then(setContacts)
       .finally(() => setLoading(false));
   }, []);
+
+  function startEditing(contact: Contact) {
+    setEditingId(contact.id);
+    setEditType(contact.type);
+    setEditLabel(contact.label);
+    setEditValue(contact.value);
+    setEditUrl(contact.url || "");
+  }
+
+  function cancelEditing() {
+    setEditingId(null);
+  }
+
+  async function saveEdit(contact: Contact) {
+    if (!editLabel || !editValue) return;
+    setSaving(contact.id);
+
+    const res = await fetch("/api/contacts", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: contact.id,
+        type: editType,
+        label: editLabel,
+        value: editValue,
+        url: editUrl || "",
+        isVisible: contact.isVisible,
+      }),
+    });
+
+    if (res.ok) {
+      setContacts((prev) =>
+        prev.map((c) =>
+          c.id === contact.id
+            ? { ...c, type: editType as Contact["type"], label: editLabel, value: editValue, url: editUrl || null }
+            : c
+        )
+      );
+      setEditingId(null);
+    }
+    setSaving(null);
+  }
 
   async function addContact() {
     if (!newLabel || !newValue) return;
@@ -72,6 +123,7 @@ export default function ContactsPage() {
 
     await fetch(`/api/contacts?id=${id}`, { method: "DELETE" });
     setContacts((prev) => prev.filter((c) => c.id !== id));
+    if (editingId === id) setEditingId(null);
   }
 
   async function toggleVisibility(contact: Contact) {
@@ -115,6 +167,77 @@ export default function ContactsPage() {
         {contacts.map((contact) => {
           const typeOpt = typeOptions.find((t) => t.value === contact.type);
           const Icon = typeOpt?.icon || ExternalLink;
+          const isEditing = editingId === contact.id;
+
+          if (isEditing) {
+            return (
+              <div
+                key={contact.id}
+                className="bg-white rounded-xl p-4 border border-primary/30 shadow-sm space-y-3"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Tipo</label>
+                    <select
+                      value={editType}
+                      onChange={(e) => setEditType(e.target.value)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                    >
+                      {typeOptions.map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Label</label>
+                    <input
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Valor</label>
+                    <input
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">URL (opcional)</label>
+                    <input
+                      value={editUrl}
+                      onChange={(e) => setEditUrl(e.target.value)}
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => saveEdit(contact)}
+                    disabled={saving === contact.id || !editLabel || !editValue}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-primary/90 disabled:opacity-50 transition"
+                  >
+                    {saving === contact.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Save className="h-3.5 w-3.5" />
+                    )}
+                    Salvar
+                  </button>
+                  <button
+                    onClick={cancelEditing}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div
@@ -130,6 +253,13 @@ export default function ContactsPage() {
                   {contact.value}
                 </p>
               </div>
+              <button
+                onClick={() => startEditing(contact)}
+                className="rounded-lg p-2 text-gray-300 hover:bg-blue-50 hover:text-blue-500 transition-colors"
+                title="Editar"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
               <button
                 onClick={() => toggleVisibility(contact)}
                 className={`text-xs px-2 py-1 rounded ${
