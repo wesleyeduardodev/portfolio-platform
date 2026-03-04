@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { ProjectWithMedia } from "@/types";
 import { ProjectCard } from "./ProjectCard";
 import { ProjectModal } from "./ProjectModal";
@@ -47,10 +47,15 @@ export function ProjectsGallery({ projects }: ProjectsGalleryProps) {
       </div>
 
       {/* Modal */}
-      <ProjectModal
-        project={selected}
-        onClose={() => setSelected(null)}
-      />
+      <AnimatePresence>
+        {selected && (
+          <ProjectModal
+            key={selected.id}
+            project={selected}
+            onClose={() => setSelected(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

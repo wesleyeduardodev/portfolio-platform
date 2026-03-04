@@ -67,7 +67,7 @@ function SortableProjectRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-4 bg-white rounded-xl p-4 border border-gray-100 shadow-sm",
+        "flex items-center gap-2 sm:gap-4 bg-white rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm",
         isDragging && "opacity-50 shadow-lg"
       )}
     >
@@ -80,7 +80,7 @@ function SortableProjectRow({
       </button>
 
       {/* Thumbnail */}
-      <div className="relative h-16 w-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+      <div className="relative h-16 w-20 rounded-lg overflow-hidden bg-gray-100 shrink-0 hidden sm:block">
         {coverUrl ? (
           <Image
             src={coverUrl}
@@ -110,7 +110,7 @@ function SortableProjectRow({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0">
         <button
           onClick={onToggleVisibility}
           className={`rounded-lg p-2 transition-colors ${
@@ -235,8 +235,8 @@ export function ProjectList({ initialProjects }: ProjectListProps) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Projetos</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Projetos</h1>
         <Link
           href="/admin/projects/new"
           className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition"
@@ -247,7 +247,7 @@ export function ProjectList({ initialProjects }: ProjectListProps) {
       </div>
 
       {projects.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 border border-gray-100 shadow-sm text-center">
+        <div className="bg-white rounded-xl p-6 sm:p-12 border border-gray-100 shadow-sm text-center">
           <p className="text-gray-500">Nenhum projeto ainda.</p>
           <Link
             href="/admin/projects/new"

@@ -80,9 +80,9 @@ export function ProjectForm({ project }: ProjectFormProps) {
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         {/* Form */}
-        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+        <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-100 shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -110,7 +110,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Categoria
@@ -185,7 +185,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
         {/* Media section (edit mode) */}
         {isEditing && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-100 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Enviar mídias
               </h2>

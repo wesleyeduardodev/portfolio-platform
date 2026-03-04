@@ -108,7 +108,7 @@ export default function ContactsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Contatos</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Contatos</h1>
 
       {/* Existing contacts */}
       <div className="space-y-2 mb-8">
@@ -119,7 +119,7 @@ export default function ContactsPage() {
           return (
             <div
               key={contact.id}
-              className="flex items-center gap-4 bg-white rounded-xl p-4 border border-gray-100 shadow-sm"
+              className="flex items-center gap-2 sm:gap-4 bg-white rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm"
             >
               <Icon className="h-5 w-5 text-primary shrink-0" />
               <div className="flex-1 min-w-0">
@@ -156,11 +156,11 @@ export default function ContactsPage() {
       </div>
 
       {/* Add new */}
-      <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+      <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-100 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Adicionar contato
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tipo

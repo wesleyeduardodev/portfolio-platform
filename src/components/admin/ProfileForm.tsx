@@ -48,7 +48,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Nome de exibição *

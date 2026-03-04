@@ -152,7 +152,7 @@ export function MediaUploader({ projectId, onUploadComplete }: MediaUploaderProp
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         className={cn(
-          "flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors cursor-pointer",
+          "flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 sm:p-8 transition-colors cursor-pointer",
           dragOver
             ? "border-accent bg-accent/5"
             : "border-gray-200 hover:border-gray-300 bg-gray-50/50"
@@ -184,7 +184,7 @@ export function MediaUploader({ projectId, onUploadComplete }: MediaUploaderProp
           {uploading.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 rounded-lg bg-white border border-gray-100 p-3"
+              className="flex items-center gap-3 rounded-lg bg-white border border-gray-100 p-2 sm:p-3"
             >
               {item.error ? (
                 <X className="h-4 w-4 text-red-500 shrink-0" />

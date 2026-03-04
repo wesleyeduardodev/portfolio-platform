@@ -8,7 +8,7 @@ import type { ProjectWithMedia } from "@/types";
 import { MediaViewer } from "./MediaViewer";
 
 interface ProjectModalProps {
-  project: ProjectWithMedia | null;
+  project: ProjectWithMedia;
   onClose: () => void;
 }
 
@@ -16,13 +16,11 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (project) {
-      document.body.style.overflow = "hidden";
-    }
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [project]);
+  }, []);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -32,15 +30,13 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose, lightboxIndex]);
 
-  if (!project) return null;
-
-  const heroUrl =
-    project.coverMedia?.url || project.media[0]?.url;
+  const heroUrl = project.coverMedia?.url || project.media[0]?.url;
 
   return (
-    <AnimatePresence>
+    <>
       {/* Backdrop */}
       <motion.div
+        key="backdrop"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -48,15 +44,15 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
         onClick={onClose}
       />
 
-      {/* Panel - slide up on mobile, slide from right on desktop */}
+      {/* Panel */}
       <motion.div
+        key="panel"
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
         className="fixed inset-y-0 right-0 z-40 w-full md:w-[50vw] bg-bg overflow-y-auto"
       >
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-10 rounded-full bg-white/80 p-2 shadow-md hover:bg-white transition backdrop-blur-sm"
@@ -64,7 +60,6 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
           <X className="h-5 w-5 text-text" />
         </button>
 
-        {/* Hero Image */}
         {heroUrl && (
           <div className="relative aspect-[16/9] w-full">
             <Image
@@ -78,13 +73,11 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
           </div>
         )}
 
-        {/* Content */}
         <div className="px-6 pb-12 -mt-8 relative">
           <h2 className="font-heading text-3xl md:text-4xl font-semibold text-primary">
             {project.title}
           </h2>
 
-          {/* Metadata pills */}
           <div className="mt-4 flex flex-wrap gap-2">
             {project.category && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 px-3 py-1 text-xs font-medium text-accent">
@@ -106,14 +99,12 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
             )}
           </div>
 
-          {/* Description */}
           {project.description && (
             <p className="mt-6 text-sm leading-relaxed text-text-muted">
               {project.description}
             </p>
           )}
 
-          {/* Media Gallery Grid */}
           {project.media.length > 0 && (
             <div className="mt-8">
               <div className="mb-4 flex items-center gap-3">
@@ -159,6 +150,6 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
           />
         )}
       </AnimatePresence>
-    </AnimatePresence>
+    </>
   );
 }

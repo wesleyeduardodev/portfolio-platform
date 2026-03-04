@@ -32,24 +32,24 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-sm text-gray-500 mt-1">
           Bem-vinda, {profile?.displayName || session.user.name}
         </p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm"
+            className="bg-white rounded-xl p-3 sm:p-5 border border-gray-100 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">{stat.label}</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">
                   {stat.value}
                 </p>
               </div>
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Checklist */}
-      <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-8">
+      <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-100 shadow-sm mb-6 sm:mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Checklist do perfil
         </h2>
