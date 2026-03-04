@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  name         String
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  profile      Profile?
+  projects     Project[]
+  contacts     Contact[]
+
+  @@map("users")
+}
+
+model Profile {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName     String   @map("display_name")
+  title           String?
+  bio             String?  @db.Text
+  profilePhotoUrl String?  @map("profile_photo_url")
+  profilePhotoKey String?  @map("profile_photo_key")
+  coverPhotoUrl   String?  @map("cover_photo_url")
+  coverPhotoKey   String?  @map("cover_photo_key")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}
+
+model Project {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?  @db.Text
+  category     String?
+  location     String?
+  year         Int?
+  sortOrder    Int      @default(0) @map("sort_order")
+  isVisible    Boolean  @default(true) @map("is_visible")
+  isFeatured   Boolean  @default(false) @map("is_featured")
+  coverMediaId String?  @unique @map("cover_media_id")
+  media        Media[]
+  coverMedia   Media?   @relation("ProjectCover", fields: [coverMediaId], references: [id])
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, sortOrder], map: "idx_projects_user_sort")
+  @@index([userId, isVisible], map: "idx_projects_user_visible")
+  @@map("projects")
+}
+
+model Media {
+  id             String    @id @default(cuid())
+  projectId      String    @map("project_id")
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type           MediaType
+  url            String
+  s3Key          String    @map("s3_key")
+  thumbnailUrl   String?   @map("thumbnail_url")
+  fileName       String    @map("file_name")
+  fileSize       Int       @map("file_size")
+  mimeType       String    @map("mime_type")
+  width          Int?
+  height         Int?
+  altText        String?   @map("alt_text")
+  caption        String?
+  sortOrder      Int       @default(0) @map("sort_order")
+  coverOfProject Project?  @relation("ProjectCover")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  @@index([projectId, sortOrder], map: "idx_media_project_sort")
+  @@map("media")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+model Contact {
+  id        String      @id @default(cuid())
+  userId    String      @map("user_id")
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      ContactType
+  label     String
+  value     String
+  url       String?
+  sortOrder Int         @default(0) @map("sort_order")
+  isVisible Boolean     @default(true) @map("is_visible")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@index([userId, sortOrder], map: "idx_contacts_user_sort")
+  @@map("contacts")
+}
+
+enum ContactType {
+  WHATSAPP
+  PHONE
+  EMAIL
+  INSTAGRAM
+  OTHER
+}
