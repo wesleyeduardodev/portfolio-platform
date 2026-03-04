@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   DndContext,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -124,8 +125,10 @@ export function MediaGrid({
   onDelete,
 }: MediaGridProps) {
   const [items, setItems] = useState(media);
+  const [mounted, setMounted] = useState(false);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
     useSensor(KeyboardSensor)
   );
 
@@ -144,7 +147,27 @@ export function MediaGrid({
     onReorder(newItems.map((i) => i.id));
   }
 
+  useEffect(() => setMounted(true), []);
+
   if (items.length === 0) return null;
+
+  if (!mounted) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+        {items.map((item) => (
+          <div key={item.id} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+            <Image
+              src={item.thumbnailUrl || item.url}
+              alt={item.altText || item.fileName}
+              fill
+              className="object-cover"
+              sizes="150px"
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <DndContext

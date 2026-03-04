@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -74,7 +75,7 @@ function SortableProjectRow({
       <button
         {...attributes}
         {...listeners}
-        className="shrink-0 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400"
+        className="shrink-0 cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400 p-1 touch-none"
       >
         <GripVertical className="h-5 w-5" />
       </button>
@@ -159,11 +160,15 @@ function SortableProjectRow({
 
 export function ProjectList({ initialProjects }: ProjectListProps) {
   const [projects, setProjects] = useState(initialProjects);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
     useSensor(KeyboardSensor)
   );
+
+  useEffect(() => setMounted(true), []);
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -257,7 +262,7 @@ export function ProjectList({ initialProjects }: ProjectListProps) {
             Criar primeiro projeto
           </Link>
         </div>
-      ) : (
+      ) : mounted ? (
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -284,6 +289,22 @@ export function ProjectList({ initialProjects }: ProjectListProps) {
             </div>
           </SortableContext>
         </DndContext>
+      ) : (
+        <div className="space-y-2">
+          {projects.map((project) => (
+            <div
+              key={project.id}
+              className="flex items-center gap-2 sm:gap-4 bg-white rounded-xl p-3 sm:p-4 border border-gray-100 shadow-sm"
+            >
+              <div className="shrink-0 text-gray-300">
+                <GripVertical className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-gray-900 truncate">{project.title}</h3>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
