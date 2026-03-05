@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { generatePresignedUrl, buildS3Key, getPublicUrl } from "@/lib/s3";
+import { storage } from "@/lib/storage";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -12,9 +12,9 @@ export async function POST(req: Request) {
   if (!fileName || !contentType || !uploadType)
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-  const key = buildS3Key(uploadType, projectId, fileName);
-  const presignedUrl = await generatePresignedUrl(key, contentType);
-  const publicUrl = getPublicUrl(key);
+  const key = storage.buildKey(session.user.id, uploadType, projectId, fileName);
+  const presignedUrl = await storage.generatePresignedUrl(key, contentType);
+  const publicUrl = storage.getPublicUrl(key);
 
   return NextResponse.json({ presignedUrl, key, publicUrl });
 }
