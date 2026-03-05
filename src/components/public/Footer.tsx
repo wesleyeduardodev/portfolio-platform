@@ -65,7 +65,7 @@ export function Footer({ contacts, displayName, professionalRegistration }: Foot
 
         {/* CREA */}
         {professionalRegistration && (
-          <p className="mt-1 text-center text-xs text-text-muted/80">
+          <p className="mt-1 text-center text-xs font-medium text-text-muted">
             {professionalRegistration}
           </p>
         )}
