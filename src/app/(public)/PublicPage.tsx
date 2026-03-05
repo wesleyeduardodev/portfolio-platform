@@ -25,6 +25,7 @@ export function PublicPage({ data }: PublicPageProps) {
       <Footer
         contacts={contacts}
         displayName={profile?.displayName || "Fernanda"}
+        professionalRegistration={profile?.professionalRegistration}
       />
     </main>
   );

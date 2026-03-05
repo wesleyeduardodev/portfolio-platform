@@ -9,6 +9,7 @@ export const profileSchema = z.object({
   displayName: z.string().min(1, "Nome é obrigatório"),
   title: z.string().optional(),
   bio: z.string().optional(),
+  professionalRegistration: z.string().optional(),
 });
 
 export const projectSchema = z.object({

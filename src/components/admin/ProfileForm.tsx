@@ -25,6 +25,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       displayName: profile?.displayName || "",
       title: profile?.title || "",
       bio: profile?.bio || "",
+      professionalRegistration: profile?.professionalRegistration || "",
     },
   });
 
@@ -84,6 +85,17 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           rows={4}
           className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none"
           placeholder="Uma breve descrição sobre você..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Registro profissional (CREA)
+        </label>
+        <input
+          {...register("professionalRegistration")}
+          className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          placeholder="Ex: CREA-MG 123456/D"
         />
       </div>
 

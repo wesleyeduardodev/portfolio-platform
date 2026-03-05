@@ -7,9 +7,10 @@ import type { ContactFull } from "@/types";
 interface FooterProps {
   contacts: ContactFull[];
   displayName: string;
+  professionalRegistration?: string | null;
 }
 
-export function Footer({ contacts, displayName }: FooterProps) {
+export function Footer({ contacts, displayName, professionalRegistration }: FooterProps) {
   const instagram = contacts.find((c) => c.type === "INSTAGRAM" && c.isVisible);
   const email = contacts.find((c) => c.type === "EMAIL" && c.isVisible);
   const phone = contacts.find(
@@ -61,6 +62,13 @@ export function Footer({ contacts, displayName }: FooterProps) {
         <p className="text-center font-heading text-lg text-primary">
           {displayName}
         </p>
+
+        {/* CREA */}
+        {professionalRegistration && (
+          <p className="mt-1 text-center text-xs text-text-muted/80">
+            {professionalRegistration}
+          </p>
+        )}
 
         {/* Attribution */}
         <p className="mt-2 text-center text-xs text-text-muted/60">
