@@ -9,6 +9,7 @@ import type { ProjectWithMedia } from "@/types";
 import { Save, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "@/lib/toast";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { MediaUploader } from "./MediaUploader";
 import { MediaGrid } from "./MediaGrid";
 import { YouTubeInput } from "./YouTubeInput";
@@ -26,7 +27,8 @@ export function ProjectForm({ project }: ProjectFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<ProjectInput>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
@@ -39,6 +41,8 @@ export function ProjectForm({ project }: ProjectFormProps) {
       isFeatured: project?.isFeatured ?? false,
     },
   });
+
+  useUnsavedChanges(isDirty);
 
   async function onSubmit(data: ProjectInput) {
     setSaving(true);
@@ -59,6 +63,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
     if (res.ok) {
       const result = await res.json();
       if (isEditing) {
+        reset(data);
         toast.success("Projeto salvo com sucesso!");
         router.refresh();
       } else {

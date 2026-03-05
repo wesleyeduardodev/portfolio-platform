@@ -91,7 +91,7 @@ export function ContactButtons({ contacts }: ContactButtonsProps) {
               initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
+              transition={{ duration: 0.4, delay: Math.min(i * 0.1, 0.4) }}
               aria-label={getContactAriaLabel(contact)}
               className={`flex items-center gap-3 rounded-xl h-[52px] px-5 font-medium transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                 isWhatsApp

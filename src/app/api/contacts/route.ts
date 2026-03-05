@@ -50,6 +50,24 @@ export const PUT = withErrorHandler(async (req) => {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await req.json();
+
+  // Reorder mode: body contains { items: [...] }
+  if (body.items && Array.isArray(body.items)) {
+    const { items } = body as { items: { id: string; sortOrder: number }[] };
+
+    await prisma.$transaction(
+      items.map((item) =>
+        prisma.contact.updateMany({
+          where: { id: item.id, userId: session.user!.id },
+          data: { sortOrder: item.sortOrder },
+        })
+      )
+    );
+
+    return NextResponse.json({ ok: true });
+  }
+
+  // Update mode: body contains { id, type, label, value, ... }
   const { id, ...data } = body;
 
   if (!id)
@@ -66,29 +84,6 @@ export const PUT = withErrorHandler(async (req) => {
 
   if (result.count === 0)
     return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
-
-  return NextResponse.json({ ok: true });
-});
-
-export const PATCH = withErrorHandler(async (req) => {
-  const session = await auth();
-  if (!session?.user?.id)
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-
-  const body = await req.json();
-  const { items } = body as { items: { id: string; sortOrder: number }[] };
-
-  if (!items || !Array.isArray(items))
-    return NextResponse.json({ error: "Items são obrigatórios" }, { status: 400 });
-
-  await prisma.$transaction(
-    items.map((item) =>
-      prisma.contact.updateMany({
-        where: { id: item.id, userId: session.user!.id },
-        data: { sortOrder: item.sortOrder },
-      })
-    )
-  );
 
   return NextResponse.json({ ok: true });
 });

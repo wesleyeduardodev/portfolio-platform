@@ -3,6 +3,10 @@
 import { useCallback, useState } from "react";
 import { Upload, X, Loader2, ImagePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILES_PER_UPLOAD = 20;
 
 interface MediaUploaderProps {
   projectId: string;
@@ -127,6 +131,18 @@ export function MediaUploader({ projectId, onUploadComplete }: MediaUploaderProp
       const validFiles = Array.from(files).filter(
         (f) => f.type.startsWith("image/")
       );
+
+      if (validFiles.length > MAX_FILES_PER_UPLOAD) {
+        toast.error("Máximo de 20 arquivos por vez");
+        return;
+      }
+
+      const oversized = validFiles.filter((f) => f.size > MAX_FILE_SIZE);
+      if (oversized.length > 0) {
+        toast.error("Arquivo muito grande. Máximo: 10MB");
+        return;
+      }
+
       validFiles.forEach(uploadFile);
     },
     [uploadFile]

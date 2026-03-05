@@ -21,7 +21,12 @@ const navItems = [
   { href: "/admin/contacts", label: "Contatos", icon: Phone },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  userName?: string;
+  userEmail?: string;
+}
+
+export function Sidebar({ userName, userEmail }: SidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -98,6 +103,18 @@ export function Sidebar() {
 
         {/* Footer */}
         <div className="p-4 border-t border-white/10 space-y-1">
+          {(userName || userEmail) && (
+            <div className="px-3 py-2 mb-2">
+              {userName && (
+                <p className="text-sm font-medium text-white truncate">
+                  {userName}
+                </p>
+              )}
+              {userEmail && (
+                <p className="text-xs text-white/50 truncate">{userEmail}</p>
+              )}
+            </div>
+          )}
           <Link
             href="/"
             target="_blank"

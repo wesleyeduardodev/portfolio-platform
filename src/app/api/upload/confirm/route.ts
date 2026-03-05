@@ -52,3 +52,48 @@ export const POST = withErrorHandler(async (req) => {
 
   return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
 });
+
+export const DELETE = withErrorHandler(async (req) => {
+  const session = await auth();
+  if (!session?.user?.id)
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+
+  const body = await req.json();
+  const { type } = body as { type: string };
+
+  if (type !== "profile-photo" && type !== "profile-cover") {
+    return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
+  }
+
+  const profile = await prisma.profile.findUnique({
+    where: { userId: session.user.id },
+    select: { profilePhotoKey: true, coverPhotoKey: true },
+  });
+
+  if (!profile) {
+    return NextResponse.json({ error: "Perfil não encontrado" }, { status: 404 });
+  }
+
+  const key =
+    type === "profile-photo" ? profile.profilePhotoKey : profile.coverPhotoKey;
+
+  if (key) {
+    try {
+      await storage.delete(key);
+    } catch (err) {
+      console.error("Falha ao deletar arquivo do S3:", err);
+    }
+  }
+
+  const data =
+    type === "profile-photo"
+      ? { profilePhotoUrl: null, profilePhotoKey: null }
+      : { coverPhotoUrl: null, coverPhotoKey: null };
+
+  await prisma.profile.update({
+    where: { userId: session.user.id },
+    data,
+  });
+
+  return NextResponse.json({ ok: true });
+});

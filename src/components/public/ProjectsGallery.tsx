@@ -17,7 +17,7 @@ export function ProjectsGallery({ projects }: ProjectsGalleryProps) {
   if (visibleProjects.length === 0) return null;
 
   return (
-    <section id="projetos" className="mx-auto max-w-2xl px-6 mt-12">
+    <section id="projetos" className="mx-auto max-w-4xl px-6 mt-12">
       {/* Section header */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -33,7 +33,7 @@ export function ProjectsGallery({ projects }: ProjectsGalleryProps) {
       </motion.div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
         {[...visibleProjects]
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .map((project, i) => (

@@ -324,7 +324,7 @@ export default function ContactsPage() {
     try {
       const items = newContacts.map((c, i) => ({ id: c.id, sortOrder: i }));
       const res = await fetch("/api/contacts", {
-        method: "PATCH",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items }),
       });

@@ -3,8 +3,11 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Camera, Loader2, ImagePlus } from "lucide-react";
+import { Camera, Loader2, ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 interface ProfilePhotoUploaderProps {
   profilePhotoUrl: string | null;
@@ -18,6 +21,10 @@ export function ProfilePhotoUploader({
   const router = useRouter();
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [removingPhoto, setRemovingPhoto] = useState(false);
+  const [removingCover, setRemovingCover] = useState(false);
+  const [confirmRemovePhoto, setConfirmRemovePhoto] = useState(false);
+  const [confirmRemoveCover, setConfirmRemoveCover] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -60,9 +67,33 @@ export function ProfilePhotoUploader({
     return publicUrl;
   }
 
+  async function handleRemovePhoto(type: "profile-photo" | "profile-cover") {
+    const setRemoving = type === "profile-photo" ? setRemovingPhoto : setRemovingCover;
+    setRemoving(true);
+    try {
+      const res = await fetch("/api/upload/confirm", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type }),
+      });
+      if (!res.ok) throw new Error("Erro ao remover");
+      router.refresh();
+      toast.success("Foto removida");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao remover");
+    }
+    setRemoving(false);
+  }
+
   async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Arquivo muito grande. Máximo: 5MB");
+      if (photoInputRef.current) photoInputRef.current.value = "";
+      return;
+    }
 
     setUploadingPhoto(true);
     try {
@@ -78,6 +109,12 @@ export function ProfilePhotoUploader({
   async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Arquivo muito grande. Máximo: 5MB");
+      if (coverInputRef.current) coverInputRef.current.value = "";
+      return;
+    }
 
     setUploadingCover(true);
     try {
@@ -133,12 +170,39 @@ export function ProfilePhotoUploader({
             </div>
           )}
         </div>
+        {coverPhotoUrl && (
+          <button
+            type="button"
+            onClick={() => setConfirmRemoveCover(true)}
+            disabled={removingCover}
+            className="mt-2 inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition disabled:opacity-50"
+          >
+            {removingCover ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="h-3.5 w-3.5" />
+            )}
+            Remover capa
+          </button>
+        )}
         <input
           ref={coverInputRef}
           type="file"
           accept="image/*"
           onChange={handleCoverChange}
           className="hidden"
+        />
+        <ConfirmDialog
+          open={confirmRemoveCover}
+          onOpenChange={setConfirmRemoveCover}
+          title="Remover foto de capa"
+          description="Tem certeza que deseja remover a foto de capa?"
+          confirmLabel="Remover"
+          variant="danger"
+          onConfirm={() => {
+            setConfirmRemoveCover(false);
+            handleRemovePhoto("profile-cover");
+          }}
         />
       </div>
 
@@ -181,9 +245,26 @@ export function ProfilePhotoUploader({
               </div>
             )}
           </div>
-          <p className="text-xs text-gray-400">
-            Clique na foto para alterar. Recomendado: 400x400px.
-          </p>
+          <div>
+            <p className="text-xs text-gray-400">
+              Clique na foto para alterar. Recomendado: 400x400px.
+            </p>
+            {profilePhotoUrl && (
+              <button
+                type="button"
+                onClick={() => setConfirmRemovePhoto(true)}
+                disabled={removingPhoto}
+                className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition disabled:opacity-50"
+              >
+                {removingPhoto ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
+                )}
+                Remover foto
+              </button>
+            )}
+          </div>
         </div>
         <input
           ref={photoInputRef}
@@ -191,6 +272,18 @@ export function ProfilePhotoUploader({
           accept="image/*"
           onChange={handlePhotoChange}
           className="hidden"
+        />
+        <ConfirmDialog
+          open={confirmRemovePhoto}
+          onOpenChange={setConfirmRemovePhoto}
+          title="Remover foto de perfil"
+          description="Tem certeza que deseja remover a foto de perfil?"
+          confirmLabel="Remover"
+          variant="danger"
+          onConfirm={() => {
+            setConfirmRemovePhoto(false);
+            handleRemovePhoto("profile-photo");
+          }}
         />
       </div>
     </div>

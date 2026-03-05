@@ -19,7 +19,7 @@ export function ProjectCard({ project, onClick, index }: ProjectCardProps) {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      transition={{ duration: 0.5, delay: Math.min(index * 0.1, 0.5) }}
       onClick={onClick}
       aria-label={`Ver projeto ${project.title}`}
       className="group relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"

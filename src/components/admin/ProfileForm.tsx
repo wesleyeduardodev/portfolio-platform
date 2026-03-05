@@ -7,6 +7,7 @@ import { profileSchema, type ProfileInput } from "@/lib/validations";
 import type { Profile } from "@prisma/client";
 import { Save, Loader2 } from "lucide-react";
 import { toast } from "@/lib/toast";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 interface ProfileFormProps {
   profile: Profile | null;
@@ -18,7 +19,8 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<ProfileInput>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -28,6 +30,8 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       professionalRegistration: profile?.professionalRegistration || "",
     },
   });
+
+  useUnsavedChanges(isDirty);
 
   async function onSubmit(data: ProfileInput) {
     setSaving(true);
@@ -40,6 +44,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
     setSaving(false);
     if (res.ok) {
+      reset(data);
       toast.success("Perfil salvo com sucesso!");
     } else {
       toast.error("Erro ao salvar perfil");

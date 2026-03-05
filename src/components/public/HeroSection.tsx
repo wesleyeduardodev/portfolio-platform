@@ -52,14 +52,14 @@ export function HeroSection({ profile }: HeroSectionProps) {
           className="flex flex-col items-center"
         >
           {/* Profile Photo */}
-          <div className="relative h-[120px] w-[120px] rounded-full border-4 border-white shadow-lg overflow-hidden bg-surface">
+          <div className="relative h-[96px] w-[96px] sm:h-[120px] sm:w-[120px] rounded-full border-4 border-white shadow-lg overflow-hidden bg-surface">
             {profile.profilePhotoUrl ? (
               <Image
                 src={profile.profilePhotoUrl}
                 alt={profile.displayName}
                 fill
                 className="object-cover"
-                sizes="120px"
+                sizes="(max-width: 640px) 96px, 120px"
                 priority
               />
             ) : (
