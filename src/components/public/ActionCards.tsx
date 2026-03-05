@@ -17,7 +17,7 @@ export function ActionCards() {
     >
       <button
         onClick={() => scrollTo("projetos")}
-        className="group flex-1 flex items-center gap-4 rounded-2xl bg-primary p-6 text-left text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
+        className="group flex-1 flex items-center gap-4 rounded-2xl bg-primary p-6 text-left text-white transition-transform hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         <Briefcase className="h-6 w-6 text-accent shrink-0" />
         <div className="flex-1">
@@ -29,7 +29,7 @@ export function ActionCards() {
 
       <button
         onClick={() => scrollTo("contato")}
-        className="group flex-1 flex items-center gap-4 rounded-2xl bg-primary p-6 text-left text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
+        className="group flex-1 flex items-center gap-4 rounded-2xl bg-primary p-6 text-left text-white transition-transform hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         <MessageCircle className="h-6 w-6 text-accent shrink-0" />
         <div className="flex-1">

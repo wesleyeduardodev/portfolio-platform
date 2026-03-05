@@ -12,7 +12,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
   if (!profile) return null;
 
   return (
-    <section className="relative">
+    <section className="relative" aria-label="Apresentação">
       {/* Cover Photo */}
       <motion.div
         initial={{ scale: 1.1 }}
@@ -23,7 +23,8 @@ export function HeroSection({ profile }: HeroSectionProps) {
         {profile.coverPhotoUrl ? (
           <Image
             src={profile.coverPhotoUrl}
-            alt="Cover"
+            alt=""
+            role="presentation"
             fill
             className="object-cover"
             priority
@@ -37,7 +38,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to top, #F0EBE3 0%, transparent 60%)",
+              "linear-gradient(to top, var(--color-bg) 0%, transparent 60%)",
           }}
         />
       </motion.div>

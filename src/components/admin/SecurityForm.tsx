@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { securitySchema, type SecurityInput } from "@/lib/validations";
 import { signOut } from "next-auth/react";
 import { Shield, Loader2 } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 interface SecurityFormProps {
   email: string;
@@ -13,11 +14,13 @@ interface SecurityFormProps {
 
 export function SecurityForm({ email }: SecurityFormProps) {
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmError, setConfirmError] = useState("");
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<SecurityInput>({
     resolver: zodResolver(securitySchema),
@@ -28,9 +31,18 @@ export function SecurityForm({ email }: SecurityFormProps) {
     },
   });
 
+  const newPassword = watch("newPassword");
+
   async function onSubmit(data: SecurityInput) {
+    // Validate confirm password when newPassword is filled
+    if (data.newPassword) {
+      if (confirmPassword !== data.newPassword) {
+        setConfirmError("As senhas não coincidem");
+        return;
+      }
+    }
+    setConfirmError("");
     setSaving(true);
-    setMessage("");
 
     const res = await fetch("/api/auth/change-credentials", {
       method: "PUT",
@@ -39,11 +51,11 @@ export function SecurityForm({ email }: SecurityFormProps) {
     });
 
     if (res.ok) {
-      setMessage("Credenciais atualizadas! Redirecionando para login...");
+      toast.success("Credenciais atualizadas! Redirecionando para login...");
       setTimeout(() => signOut({ callbackUrl: "/login" }), 1500);
     } else {
       const json = await res.json();
-      setMessage(json.error || "Erro ao atualizar credenciais");
+      toast.error(json.error || "Erro ao atualizar credenciais");
       setSaving(false);
     }
   }
@@ -98,16 +110,25 @@ export function SecurityForm({ email }: SecurityFormProps) {
         )}
       </div>
 
-      {message && (
-        <p
-          className={`text-sm ${
-            message.includes("Erro") || message.includes("incorreta")
-              ? "text-red-500"
-              : "text-green-600"
-          }`}
-        >
-          {message}
-        </p>
+      {newPassword && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Confirmar nova senha *
+          </label>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (confirmError) setConfirmError("");
+            }}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            placeholder="Repita a nova senha"
+          />
+          {confirmError && (
+            <p className="mt-1 text-xs text-red-500">{confirmError}</p>
+          )}
+        </div>
       )}
 
       <button

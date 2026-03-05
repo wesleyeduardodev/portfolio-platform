@@ -96,7 +96,8 @@ function SortableMediaItem({
       <button
         {...attributes}
         {...listeners}
-        className="absolute top-1 left-1 rounded bg-black/50 p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+        aria-label="Arrastar para reordenar"
+        className="absolute top-1 left-1 rounded bg-black/50 p-1 text-white opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
       >
         <GripVertical className="h-3 w-3" />
       </button>
@@ -109,9 +110,10 @@ function SortableMediaItem({
       )}
 
       {/* Actions overlay */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-1 bg-black/60 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-1 bg-black/40 md:bg-black/60 py-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
         <button
           onClick={onSetCover}
+          aria-label="Definir como capa"
           className={cn(
             "rounded p-1.5 transition-colors",
             isCover
@@ -124,6 +126,7 @@ function SortableMediaItem({
         </button>
         <button
           onClick={onDelete}
+          aria-label="Excluir mídia"
           className="rounded p-1.5 text-white/70 hover:text-red-400 transition-colors"
           title="Excluir"
         >

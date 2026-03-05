@@ -3,14 +3,15 @@ import bcrypt from "bcryptjs";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { securitySchema } from "@/lib/validations";
+import { withErrorHandler } from "@/lib/api-handler";
 
-export async function PUT(request: Request) {
+export const PUT = withErrorHandler(async (req) => {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await req.json();
   const parsed = securitySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
@@ -46,4 +47,4 @@ export async function PUT(request: Request) {
   });
 
   return NextResponse.json({ ok: true });
-}
+});

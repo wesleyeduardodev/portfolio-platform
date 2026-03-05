@@ -23,6 +23,21 @@ const iconMap = {
   OTHER: ExternalLink,
 };
 
+function getContactAriaLabel(contact: ContactFull): string {
+  switch (contact.type) {
+    case "WHATSAPP":
+      return `Enviar mensagem pelo WhatsApp para ${contact.value}`;
+    case "PHONE":
+      return `Ligar para ${contact.value}`;
+    case "EMAIL":
+      return `Enviar email para ${contact.value}`;
+    case "INSTAGRAM":
+      return `Ver perfil no Instagram: ${contact.value}`;
+    default:
+      return contact.label;
+  }
+}
+
 function getContactHref(contact: ContactFull): string {
   switch (contact.type) {
     case "WHATSAPP":
@@ -77,7 +92,8 @@ export function ContactButtons({ contacts }: ContactButtonsProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
-              className={`flex items-center gap-3 rounded-xl h-[52px] px-5 font-medium transition-all ${
+              aria-label={getContactAriaLabel(contact)}
+              className={`flex items-center gap-3 rounded-xl h-[52px] px-5 font-medium transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                 isWhatsApp
                   ? "bg-whatsapp text-white animate-breathe hover:brightness-110"
                   : "bg-surface text-text border border-text/5 hover:border-accent/30 hover:shadow-sm"

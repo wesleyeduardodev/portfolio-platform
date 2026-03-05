@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { reorderSchema } from "@/lib/validations";
+import { withErrorHandler } from "@/lib/api-handler";
 
-export async function PUT(req: Request) {
+export const PUT = withErrorHandler(async (req) => {
   const session = await auth();
   if (!session?.user?.id)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await req.json();
   const parsed = reorderSchema.safeParse(body);
@@ -23,4 +24,4 @@ export async function PUT(req: Request) {
   );
 
   return NextResponse.json({ ok: true });
-}
+});

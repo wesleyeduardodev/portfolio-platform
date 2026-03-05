@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Camera, Loader2, ImagePlus } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 interface ProfilePhotoUploaderProps {
   profilePhotoUrl: string | null;
@@ -68,7 +69,7 @@ export function ProfilePhotoUploader({
       await uploadFile(file, "profile-photo");
       router.refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro no upload");
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
     }
     setUploadingPhoto(false);
     if (photoInputRef.current) photoInputRef.current.value = "";
@@ -83,7 +84,7 @@ export function ProfilePhotoUploader({
       await uploadFile(file, "profile-cover");
       router.refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro no upload");
+      toast.error(err instanceof Error ? err.message : "Erro no upload");
     }
     setUploadingCover(false);
     if (coverInputRef.current) coverInputRef.current.value = "";

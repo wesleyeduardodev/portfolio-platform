@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { profileSchema, type ProfileInput } from "@/lib/validations";
 import type { Profile } from "@prisma/client";
 import { Save, Loader2 } from "lucide-react";
+import { toast } from "@/lib/toast";
 
 interface ProfileFormProps {
   profile: Profile | null;
@@ -13,7 +14,6 @@ interface ProfileFormProps {
 
 export function ProfileForm({ profile }: ProfileFormProps) {
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
 
   const {
     register,
@@ -31,7 +31,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
   async function onSubmit(data: ProfileInput) {
     setSaving(true);
-    setMessage("");
 
     const res = await fetch("/api/profile", {
       method: "PUT",
@@ -41,10 +40,9 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
     setSaving(false);
     if (res.ok) {
-      setMessage("Perfil salvo com sucesso!");
-      setTimeout(() => setMessage(""), 3000);
+      toast.success("Perfil salvo com sucesso!");
     } else {
-      setMessage("Erro ao salvar perfil");
+      toast.error("Erro ao salvar perfil");
     }
   }
 
@@ -98,16 +96,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           placeholder="Ex: CREA-MG 123456/D"
         />
       </div>
-
-      {message && (
-        <p
-          className={`text-sm ${
-            message.includes("Erro") ? "text-red-500" : "text-green-600"
-          }`}
-        >
-          {message}
-        </p>
-      )}
 
       <button
         type="submit"

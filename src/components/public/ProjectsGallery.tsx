@@ -34,7 +34,7 @@ export function ProjectsGallery({ projects }: ProjectsGalleryProps) {
 
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-        {visibleProjects
+        {[...visibleProjects]
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .map((project, i) => (
             <ProjectCard

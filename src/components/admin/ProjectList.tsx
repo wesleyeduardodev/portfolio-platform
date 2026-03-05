@@ -31,6 +31,8 @@ import {
 } from "lucide-react";
 import type { ProjectWithMedia } from "@/types";
 import { cn } from "@/lib/utils";
+import { toast } from "@/lib/toast";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface ProjectListProps {
   initialProjects: ProjectWithMedia[];
@@ -161,6 +163,7 @@ function SortableProjectRow({
 export function ProjectList({ initialProjects }: ProjectListProps) {
   const [projects, setProjects] = useState(initialProjects);
   const [mounted, setMounted] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const router = useRouter();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -177,6 +180,7 @@ export function ProjectList({ initialProjects }: ProjectListProps) {
     const oldIndex = projects.findIndex((p) => p.id === active.id);
     const newIndex = projects.findIndex((p) => p.id === over.id);
 
+    const previousProjects = [...projects];
     const newProjects = [...projects];
     const [removed] = newProjects.splice(oldIndex, 1);
     newProjects.splice(newIndex, 0, removed);
@@ -184,58 +188,90 @@ export function ProjectList({ initialProjects }: ProjectListProps) {
     setProjects(newProjects);
 
     // Persist new order
-    await fetch("/api/projects/reorder", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        items: newProjects.map((p, i) => ({ id: p.id, sortOrder: i })),
-      }),
-    });
+    try {
+      const res = await fetch("/api/projects/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: newProjects.map((p, i) => ({ id: p.id, sortOrder: i })),
+        }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setProjects(previousProjects);
+      toast.error("Erro ao reordenar");
+    }
   }
 
   async function toggleVisibility(id: string, current: boolean) {
     const project = projects.find((p) => p.id === id);
     if (!project) return;
 
-    await fetch(`/api/projects/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: project.title,
-        isVisible: !current,
-        isFeatured: project.isFeatured,
-      }),
-    });
-
+    // Optimistic update
     setProjects((prev) =>
       prev.map((p) => (p.id === id ? { ...p, isVisible: !current } : p))
     );
+
+    try {
+      const res = await fetch(`/api/projects/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: project.title,
+          isVisible: !current,
+          isFeatured: project.isFeatured,
+        }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      // Rollback
+      setProjects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, isVisible: current } : p))
+      );
+      toast.error("Erro ao alterar visibilidade");
+    }
   }
 
   async function toggleFeatured(id: string, current: boolean) {
     const project = projects.find((p) => p.id === id);
     if (!project) return;
 
-    await fetch(`/api/projects/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: project.title,
-        isVisible: project.isVisible,
-        isFeatured: !current,
-      }),
-    });
-
+    // Optimistic update
     setProjects((prev) =>
       prev.map((p) => (p.id === id ? { ...p, isFeatured: !current } : p))
     );
+
+    try {
+      const res = await fetch(`/api/projects/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: project.title,
+          isVisible: project.isVisible,
+          isFeatured: !current,
+        }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      // Rollback
+      setProjects((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, isFeatured: current } : p))
+      );
+      toast.error("Erro ao alterar destaque");
+    }
   }
 
   async function deleteProject(id: string) {
-    if (!confirm("Tem certeza que deseja excluir este projeto?")) return;
-
-    await fetch(`/api/projects/${id}`, { method: "DELETE" });
-    setProjects((prev) => prev.filter((p) => p.id !== id));
+    try {
+      const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+      toast.success("Projeto excluído");
+    } catch {
+      toast.error("Erro ao excluir projeto");
+    } finally {
+      setDeleteId(null);
+    }
   }
 
   return (
@@ -283,7 +319,7 @@ export function ProjectList({ initialProjects }: ProjectListProps) {
                   onToggleFeatured={() =>
                     toggleFeatured(project.id, project.isFeatured)
                   }
-                  onDelete={() => deleteProject(project.id)}
+                  onDelete={() => setDeleteId(project.id)}
                 />
               ))}
             </div>
@@ -306,6 +342,16 @@ export function ProjectList({ initialProjects }: ProjectListProps) {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteId(null); }}
+        title="Excluir projeto"
+        description="Tem certeza que deseja excluir este projeto? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        variant="danger"
+        onConfirm={() => { if (deleteId) deleteProject(deleteId); }}
+      />
     </div>
   );
 }

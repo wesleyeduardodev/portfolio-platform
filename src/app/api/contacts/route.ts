@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { contactSchema } from "@/lib/validations";
+import { withErrorHandler } from "@/lib/api-handler";
 
-export async function GET() {
+export const GET = withErrorHandler(async () => {
   const session = await auth();
   if (!session?.user?.id)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const contacts = await prisma.contact.findMany({
     where: { userId: session.user.id },
@@ -14,12 +15,12 @@ export async function GET() {
   });
 
   return NextResponse.json(contacts);
-}
+});
 
-export async function POST(req: Request) {
+export const POST = withErrorHandler(async (req) => {
   const session = await auth();
   if (!session?.user?.id)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await req.json();
   const parsed = contactSchema.safeParse(body);
@@ -41,18 +42,18 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json(contact, { status: 201 });
-}
+});
 
-export async function PUT(req: Request) {
+export const PUT = withErrorHandler(async (req) => {
   const session = await auth();
   if (!session?.user?.id)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await req.json();
   const { id, ...data } = body;
 
   if (!id)
-    return NextResponse.json({ error: "id required" }, { status: 400 });
+    return NextResponse.json({ error: "ID é obrigatório" }, { status: 400 });
 
   const parsed = contactSchema.safeParse(data);
   if (!parsed.success)
@@ -64,21 +65,21 @@ export async function PUT(req: Request) {
   });
 
   if (result.count === 0)
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
 
   return NextResponse.json({ ok: true });
-}
+});
 
-export async function PATCH(req: Request) {
+export const PATCH = withErrorHandler(async (req) => {
   const session = await auth();
   if (!session?.user?.id)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await req.json();
   const { items } = body as { items: { id: string; sortOrder: number }[] };
 
   if (!items || !Array.isArray(items))
-    return NextResponse.json({ error: "items required" }, { status: 400 });
+    return NextResponse.json({ error: "Items são obrigatórios" }, { status: 400 });
 
   await prisma.$transaction(
     items.map((item) =>
@@ -90,25 +91,25 @@ export async function PATCH(req: Request) {
   );
 
   return NextResponse.json({ ok: true });
-}
+});
 
-export async function DELETE(req: Request) {
+export const DELETE = withErrorHandler(async (req) => {
   const session = await auth();
   if (!session?.user?.id)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
   if (!id)
-    return NextResponse.json({ error: "id required" }, { status: 400 });
+    return NextResponse.json({ error: "ID é obrigatório" }, { status: 400 });
 
   const result = await prisma.contact.deleteMany({
     where: { id, userId: session.user.id },
   });
 
   if (result.count === 0)
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
 
   return NextResponse.json({ ok: true });
-}
+});

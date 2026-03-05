@@ -50,13 +50,17 @@ export function MediaViewer({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Visualizador de mídia"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/95"
       onClick={onClose}
     >
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm hover:bg-white/20 transition"
+        aria-label="Fechar visualizador"
+        className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm hover:bg-white/20 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         <X className="h-6 w-6" />
       </button>
@@ -73,7 +77,8 @@ export function MediaViewer({
             e.stopPropagation();
             goPrev();
           }}
-          className="absolute left-4 z-10 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm hover:bg-white/20 transition"
+          aria-label="Imagem anterior"
+          className="absolute left-4 z-10 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm hover:bg-white/20 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           <ChevronLeft className="h-6 w-6" />
         </button>
@@ -84,7 +89,8 @@ export function MediaViewer({
             e.stopPropagation();
             goNext();
           }}
-          className="absolute right-4 z-10 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm hover:bg-white/20 transition"
+          aria-label="Próxima imagem"
+          className="absolute right-4 z-10 rounded-full bg-white/10 p-2 text-white backdrop-blur-sm hover:bg-white/20 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           <ChevronRight className="h-6 w-6" />
         </button>
@@ -110,6 +116,7 @@ export function MediaViewer({
           {item.type === "VIDEO" && item.mimeType === "video/youtube" ? (
             <iframe
               src={getYouTubeEmbedUrl(extractYouTubeId(item.url) || "")}
+              title={item.altText || item.fileName || "Vídeo do projeto"}
               className="w-[90vw] max-w-4xl aspect-video rounded-lg"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

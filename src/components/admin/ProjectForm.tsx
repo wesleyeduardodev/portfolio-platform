@@ -8,6 +8,7 @@ import { projectSchema, type ProjectInput } from "@/lib/validations";
 import type { ProjectWithMedia } from "@/types";
 import { Save, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { toast } from "@/lib/toast";
 import { MediaUploader } from "./MediaUploader";
 import { MediaGrid } from "./MediaGrid";
 import { YouTubeInput } from "./YouTubeInput";
@@ -58,11 +59,13 @@ export function ProjectForm({ project }: ProjectFormProps) {
     if (res.ok) {
       const result = await res.json();
       if (isEditing) {
+        toast.success("Projeto salvo com sucesso!");
         router.refresh();
       } else {
         router.push(`/admin/projects/${result.id}`);
       }
     } else {
+      toast.error("Erro ao salvar projeto");
       setError("Erro ao salvar projeto");
     }
   }

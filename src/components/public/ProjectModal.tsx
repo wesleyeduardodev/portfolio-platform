@@ -48,6 +48,9 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
       {/* Panel */}
       <motion.div
         key="panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Projeto: ${project.title}`}
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
@@ -56,7 +59,8 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 rounded-full bg-white/80 p-2 shadow-md hover:bg-white transition backdrop-blur-sm"
+          aria-label="Fechar projeto"
+          className="absolute top-4 right-4 z-10 rounded-full bg-white/80 p-2 shadow-md hover:bg-white transition backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           <X className="h-5 w-5 text-text" />
         </button>
@@ -117,7 +121,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {project.media
+                {[...project.media]
                   .sort((a, b) => a.sortOrder - b.sortOrder)
                   .map((item, idx) => {
                     const isYouTube = item.type === "VIDEO" && item.mimeType === "video/youtube";
@@ -129,7 +133,8 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                       <button
                         key={item.id}
                         onClick={() => setLightboxIndex(idx)}
-                        className="group relative aspect-square overflow-hidden rounded-lg bg-surface"
+                        aria-label={`Ver imagem ${idx + 1} de ${project.media.length}`}
+                        className="group relative aspect-square overflow-hidden rounded-lg bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                       >
                         <Image
                           src={thumbSrc}
@@ -159,7 +164,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
       <AnimatePresence>
         {lightboxIndex !== null && (
           <MediaViewer
-            media={project.media.sort((a, b) => a.sortOrder - b.sortOrder)}
+            media={[...project.media].sort((a, b) => a.sortOrder - b.sortOrder)}
             initialIndex={lightboxIndex}
             onClose={() => setLightboxIndex(null)}
           />

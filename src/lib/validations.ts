@@ -50,8 +50,37 @@ export const securitySchema = z
     { message: "Mínimo 6 caracteres", path: ["newPassword"] }
   );
 
+export const mediaSchema = z.object({
+  type: z.enum(["IMAGE", "VIDEO"]),
+  url: z.string().url(),
+  s3Key: z.string().optional(),
+  thumbnailUrl: z.string().url().optional().or(z.literal("")),
+  fileName: z.string().min(1),
+  fileSize: z.number().int().positive(),
+  mimeType: z.string().min(1),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  altText: z.string().optional(),
+  caption: z.string().optional(),
+});
+
+export const presignSchema = z.object({
+  fileName: z.string().min(1),
+  contentType: z.string().regex(/^(image\/)/, "Apenas imagens são permitidas"),
+  uploadType: z.enum(["project-media", "profile-photo", "profile-cover"]),
+});
+
+export const uploadConfirmSchema = z.object({
+  type: z.enum(["project-media", "profile-photo", "profile-cover"]),
+  key: z.string().min(1),
+  url: z.string().url(),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ProfileInput = z.infer<typeof profileSchema>;
 export type ProjectInput = z.infer<typeof projectSchema>;
 export type ContactInput = z.infer<typeof contactSchema>;
 export type SecurityInput = z.infer<typeof securitySchema>;
+export type MediaInput = z.infer<typeof mediaSchema>;
+export type PresignInput = z.infer<typeof presignSchema>;
+export type UploadConfirmInput = z.infer<typeof uploadConfirmSchema>;

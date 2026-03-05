@@ -21,7 +21,8 @@ export function ProjectCard({ project, onClick, index }: ProjectCardProps) {
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       onClick={onClick}
-      className="group relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface text-left"
+      aria-label={`Ver projeto ${project.title}`}
+      className="group relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     >
       {coverUrl ? (
         <Image

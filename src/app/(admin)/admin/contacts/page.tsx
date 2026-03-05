@@ -32,6 +32,8 @@ import {
   GripVertical,
 } from "lucide-react";
 import type { Contact } from "@prisma/client";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { toast } from "@/lib/toast";
 
 const typeOptions = [
   { value: "WHATSAPP", label: "WhatsApp", icon: MessageCircle },
@@ -290,6 +292,7 @@ export default function ContactsPage() {
   const [newValue, setNewValue] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [adding, setAdding] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -311,18 +314,25 @@ export default function ContactsPage() {
     const oldIndex = contacts.findIndex((c) => c.id === active.id);
     const newIndex = contacts.findIndex((c) => c.id === over.id);
 
+    const previousContacts = [...contacts];
     const newContacts = [...contacts];
     const [removed] = newContacts.splice(oldIndex, 1);
     newContacts.splice(newIndex, 0, removed);
 
     setContacts(newContacts);
 
-    const items = newContacts.map((c, i) => ({ id: c.id, sortOrder: i }));
-    await fetch("/api/contacts", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items }),
-    });
+    try {
+      const items = newContacts.map((c, i) => ({ id: c.id, sortOrder: i }));
+      const res = await fetch("/api/contacts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setContacts(previousContacts);
+      toast.error("Erro ao reordenar");
+    }
   }
 
   const updateNewValue = useCallback(
@@ -380,20 +390,22 @@ export default function ContactsPage() {
 
     const cleanValue = saveCleanValue(editType, editValue);
 
-    const res = await fetch("/api/contacts", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: contact.id,
-        type: editType,
-        label: editLabel,
-        value: cleanValue,
-        url: editUrl || "",
-        isVisible: contact.isVisible,
-      }),
-    });
+    try {
+      const res = await fetch("/api/contacts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: contact.id,
+          type: editType,
+          label: editLabel,
+          value: cleanValue,
+          url: editUrl || "",
+          isVisible: contact.isVisible,
+        }),
+      });
 
-    if (res.ok) {
+      if (!res.ok) throw new Error();
+
       setContacts((prev) =>
         prev.map((c) =>
           c.id === contact.id
@@ -402,6 +414,9 @@ export default function ContactsPage() {
         )
       );
       setEditingId(null);
+      toast.success("Contato atualizado!");
+    } catch {
+      toast.error("Erro ao atualizar contato");
     }
     setSaving(null);
   }
@@ -412,51 +427,75 @@ export default function ContactsPage() {
 
     const cleanValue = saveCleanValue(newType, newValue);
 
-    const res = await fetch("/api/contacts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: newType,
-        label: newLabel,
-        value: cleanValue,
-        url: newUrl || undefined,
-        isVisible: true,
-      }),
-    });
+    try {
+      const res = await fetch("/api/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: newType,
+          label: newLabel,
+          value: cleanValue,
+          url: newUrl || undefined,
+          isVisible: true,
+        }),
+      });
 
-    if (res.ok) {
+      if (!res.ok) throw new Error();
+
       const contact = await res.json();
       setContacts((prev) => [...prev, contact]);
       setNewValue("");
       setNewUrl("");
+      toast.success("Contato adicionado!");
+    } catch {
+      toast.error("Erro ao adicionar contato");
     }
     setAdding(false);
   }
 
   async function deleteContact(id: string) {
-    if (!confirm("Excluir este contato?")) return;
-    await fetch(`/api/contacts?id=${id}`, { method: "DELETE" });
-    setContacts((prev) => prev.filter((c) => c.id !== id));
-    if (editingId === id) setEditingId(null);
+    try {
+      const res = await fetch(`/api/contacts?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setContacts((prev) => prev.filter((c) => c.id !== id));
+      if (editingId === id) setEditingId(null);
+      toast.success("Contato excluído");
+    } catch {
+      toast.error("Erro ao excluir contato");
+    } finally {
+      setDeleteId(null);
+    }
   }
 
   async function toggleVisibility(contact: Contact) {
     setSaving(contact.id);
-    await fetch("/api/contacts", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: contact.id,
-        type: contact.type,
-        label: contact.label,
-        value: contact.value,
-        url: contact.url || "",
-        isVisible: !contact.isVisible,
-      }),
-    });
+
+    // Optimistic update
     setContacts((prev) =>
       prev.map((c) => (c.id === contact.id ? { ...c, isVisible: !c.isVisible } : c))
     );
+
+    try {
+      const res = await fetch("/api/contacts", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: contact.id,
+          type: contact.type,
+          label: contact.label,
+          value: contact.value,
+          url: contact.url || "",
+          isVisible: !contact.isVisible,
+        }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      // Rollback
+      setContacts((prev) =>
+        prev.map((c) => (c.id === contact.id ? { ...c, isVisible: contact.isVisible } : c))
+      );
+      toast.error("Erro ao alterar visibilidade");
+    }
     setSaving(null);
   }
 
@@ -490,7 +529,7 @@ export default function ContactsPage() {
                 onCancelEditing={cancelEditing}
                 onSaveEdit={() => saveEdit(contact)}
                 onToggleVisibility={() => toggleVisibility(contact)}
-                onDelete={() => deleteContact(contact.id)}
+                onDelete={() => setDeleteId(contact.id)}
                 onEditTypeChange={handleEditTypeChange}
                 onEditLabelChange={setEditLabel}
                 onEditValueChange={updateEditValue}
@@ -560,6 +599,16 @@ export default function ContactsPage() {
           Adicionar
         </button>
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteId(null); }}
+        title="Excluir contato"
+        description="Tem certeza que deseja excluir este contato? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        variant="danger"
+        onConfirm={() => { if (deleteId) deleteContact(deleteId); }}
+      />
     </div>
   );
 }

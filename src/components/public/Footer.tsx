@@ -35,7 +35,8 @@ export function Footer({ contacts, displayName, professionalRegistration }: Foot
               href={instagram.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full bg-primary/10 p-2.5 text-primary hover:bg-primary hover:text-white transition-colors"
+              aria-label="Instagram"
+              className="rounded-full bg-primary/10 p-2.5 text-primary hover:bg-primary hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <Instagram className="h-5 w-5" />
             </a>
@@ -43,7 +44,8 @@ export function Footer({ contacts, displayName, professionalRegistration }: Foot
           {email && (
             <a
               href={`mailto:${email.value}`}
-              className="rounded-full bg-primary/10 p-2.5 text-primary hover:bg-primary hover:text-white transition-colors"
+              aria-label="Email"
+              className="rounded-full bg-primary/10 p-2.5 text-primary hover:bg-primary hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <Mail className="h-5 w-5" />
             </a>
@@ -51,7 +53,8 @@ export function Footer({ contacts, displayName, professionalRegistration }: Foot
           {phone && (
             <a
               href={`tel:+55${phone.value.replace(/\D/g, "")}`}
-              className="rounded-full bg-primary/10 p-2.5 text-primary hover:bg-primary hover:text-white transition-colors"
+              aria-label="Telefone"
+              className="rounded-full bg-primary/10 p-2.5 text-primary hover:bg-primary hover:text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               <Phone className="h-5 w-5" />
             </a>
