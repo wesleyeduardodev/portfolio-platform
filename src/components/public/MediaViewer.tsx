@@ -10,6 +10,7 @@ import { extractYouTubeId, getYouTubeEmbedUrl } from "@/lib/youtube";
 interface MediaViewerProps {
   media: Media[];
   initialIndex: number;
+  allowDownload?: boolean;
   onClose: () => void;
 }
 
@@ -29,6 +30,7 @@ async function downloadMedia(url: string, fileName: string) {
 export function MediaViewer({
   media,
   initialIndex,
+  allowDownload = false,
   onClose,
 }: MediaViewerProps) {
   const [current, setCurrent] = useState(initialIndex);
@@ -84,7 +86,7 @@ export function MediaViewer({
         <div className="rounded-full bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-sm">
           {current + 1} / {media.length}
         </div>
-        {!isYouTube && (
+        {allowDownload && !isYouTube && (
           <button
             onClick={(e) => {
               e.stopPropagation();

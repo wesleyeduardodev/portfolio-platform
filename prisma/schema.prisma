@@ -50,8 +50,9 @@ model Project {
   year         Int?
   sortOrder    Int      @default(0) @map("sort_order")
   isVisible    Boolean  @default(true) @map("is_visible")
-  isFeatured   Boolean  @default(false) @map("is_featured")
-  coverMediaId String?  @unique @map("cover_media_id")
+  isFeatured     Boolean  @default(false) @map("is_featured")
+  allowDownload  Boolean  @default(false) @map("allow_download")
+  coverMediaId   String?  @unique @map("cover_media_id")
   media        Media[]
   coverMedia   Media?   @relation("ProjectCover", fields: [coverMediaId], references: [id])
   createdAt    DateTime @default(now()) @map("created_at")

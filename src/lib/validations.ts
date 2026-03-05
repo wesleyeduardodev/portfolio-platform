@@ -20,6 +20,7 @@ export const projectSchema = z.object({
   year: z.coerce.number().int().min(1900).max(2100).optional(),
   isVisible: z.boolean(),
   isFeatured: z.boolean(),
+  allowDownload: z.boolean(),
 });
 
 export const contactSchema = z.object({

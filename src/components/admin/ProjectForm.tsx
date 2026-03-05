@@ -41,6 +41,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
       year: project?.year || undefined,
       isVisible: project?.isVisible ?? true,
       isFeatured: project?.isFeatured ?? false,
+      allowDownload: project?.allowDownload ?? false,
     },
   });
 
@@ -172,6 +173,14 @@ export function ProjectForm({ project }: ProjectFormProps) {
                 />
                 Destaque
               </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  {...register("allowDownload")}
+                  className="rounded border-gray-300"
+                />
+                Permitir download
+              </label>
             </div>
 
             {error && (
@@ -242,6 +251,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                         title: project.title,
                         isVisible: project.isVisible,
                         isFeatured: project.isFeatured,
+                        allowDownload: project.allowDownload,
                         coverMediaId: mediaId,
                       }),
                     });

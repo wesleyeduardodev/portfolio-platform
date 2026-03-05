@@ -150,7 +150,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                 <div className="h-px flex-1 bg-accent/30" />
               </div>
 
-              {downloadableMedia.length > 0 && (
+              {project.allowDownload && downloadableMedia.length > 0 && (
                 <div className="mb-4 flex justify-end">
                   <button
                     onClick={handleDownloadAll}
@@ -218,6 +218,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
           <MediaViewer
             media={[...project.media].sort((a, b) => a.sortOrder - b.sortOrder)}
             initialIndex={lightboxIndex}
+            allowDownload={project.allowDownload}
             onClose={() => setLightboxIndex(null)}
           />
         )}
