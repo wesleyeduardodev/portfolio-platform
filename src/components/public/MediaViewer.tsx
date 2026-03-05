@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Media } from "@prisma/client";
+import { extractYouTubeId, getYouTubeEmbedUrl } from "@/lib/youtube";
 
 interface MediaViewerProps {
   media: Media[];
@@ -89,7 +90,7 @@ export function MediaViewer({
         </button>
       )}
 
-      {/* Image */}
+      {/* Media content */}
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
@@ -106,14 +107,23 @@ export function MediaViewer({
             if (diff < -50) goPrev();
           }}
         >
-          <Image
-            src={item.url}
-            alt={item.altText || item.fileName}
-            width={item.width || 1200}
-            height={item.height || 800}
-            className="max-h-[85vh] w-auto object-contain rounded-lg"
-            sizes="90vw"
-          />
+          {item.type === "VIDEO" && item.mimeType === "video/youtube" ? (
+            <iframe
+              src={getYouTubeEmbedUrl(extractYouTubeId(item.url) || "")}
+              className="w-[90vw] max-w-4xl aspect-video rounded-lg"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <Image
+              src={item.url}
+              alt={item.altText || item.fileName}
+              width={item.width || 1200}
+              height={item.height || 800}
+              className="max-h-[85vh] w-auto object-contain rounded-lg"
+              sizes="90vw"
+            />
+          )}
           {item.caption && (
             <p className="absolute bottom-0 left-0 right-0 bg-black/50 p-3 text-center text-sm text-white backdrop-blur-sm rounded-b-lg">
               {item.caption}

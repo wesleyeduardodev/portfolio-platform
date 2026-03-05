@@ -10,6 +10,7 @@ import { Save, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { MediaUploader } from "./MediaUploader";
 import { MediaGrid } from "./MediaGrid";
+import { YouTubeInput } from "./YouTubeInput";
 
 interface ProjectFormProps {
   project?: ProjectWithMedia;
@@ -187,11 +188,21 @@ export function ProjectForm({ project }: ProjectFormProps) {
           <div className="space-y-6">
             <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-100 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Enviar mídias
+                Enviar imagens
               </h2>
               <MediaUploader
                 projectId={project.id}
                 onUploadComplete={() => router.refresh()}
+              />
+            </div>
+
+            <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-100 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Vídeo do YouTube
+              </h2>
+              <YouTubeInput
+                projectId={project.id}
+                onAdded={() => router.refresh()}
               />
             </div>
 

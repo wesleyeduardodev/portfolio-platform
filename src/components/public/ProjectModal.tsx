@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { X, MapPin, Calendar, Grid3X3 } from "lucide-react";
+import { X, MapPin, Calendar, Grid3X3, Play } from "lucide-react";
 import type { ProjectWithMedia } from "@/types";
 import { MediaViewer } from "./MediaViewer";
+import { extractYouTubeId, getYouTubeThumbnail } from "@/lib/youtube";
 
 interface ProjectModalProps {
   project: ProjectWithMedia;
@@ -118,22 +119,36 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {project.media
                   .sort((a, b) => a.sortOrder - b.sortOrder)
-                  .map((item, idx) => (
-                    <button
-                      key={item.id}
-                      onClick={() => setLightboxIndex(idx)}
-                      className="group relative aspect-square overflow-hidden rounded-lg bg-surface"
-                    >
-                      <Image
-                        src={item.thumbnailUrl || item.url}
-                        alt={item.altText || item.fileName}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 768px) 50vw, 17vw"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                    </button>
-                  ))}
+                  .map((item, idx) => {
+                    const isYouTube = item.type === "VIDEO" && item.mimeType === "video/youtube";
+                    const thumbSrc = isYouTube
+                      ? item.thumbnailUrl || getYouTubeThumbnail(extractYouTubeId(item.url) || "")
+                      : item.thumbnailUrl || item.url;
+
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setLightboxIndex(idx)}
+                        className="group relative aspect-square overflow-hidden rounded-lg bg-surface"
+                      >
+                        <Image
+                          src={thumbSrc}
+                          alt={item.altText || item.fileName}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="(max-width: 768px) 50vw, 17vw"
+                        />
+                        {isYouTube && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="rounded-full bg-red-600/90 p-2.5 shadow-lg">
+                              <Play className="h-5 w-5 text-white fill-white" />
+                            </div>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                      </button>
+                    );
+                  })}
               </div>
             </div>
           )}

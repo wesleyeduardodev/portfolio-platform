@@ -91,7 +91,7 @@ export function MediaUploader({ projectId, onUploadComplete }: MediaUploaderProp
             mimeType: file.type,
             width,
             height,
-            type: file.type.startsWith("video/") ? "VIDEO" : "IMAGE",
+            type: "IMAGE",
           }),
         });
 
@@ -125,7 +125,7 @@ export function MediaUploader({ projectId, onUploadComplete }: MediaUploaderProp
   const handleFiles = useCallback(
     (files: FileList | File[]) => {
       const validFiles = Array.from(files).filter(
-        (f) => f.type.startsWith("image/") || f.type.startsWith("video/")
+        (f) => f.type.startsWith("image/")
       );
       validFiles.forEach(uploadFile);
     },
@@ -161,7 +161,7 @@ export function MediaUploader({ projectId, onUploadComplete }: MediaUploaderProp
           const input = document.createElement("input");
           input.type = "file";
           input.multiple = true;
-          input.accept = "image/*,video/*";
+          input.accept = "image/*";
           input.onchange = () => {
             if (input.files) handleFiles(input.files);
           };
@@ -174,7 +174,7 @@ export function MediaUploader({ projectId, onUploadComplete }: MediaUploaderProp
           arraste arquivos aqui
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          Imagens e vídeos (JPG, PNG, WEBP, MP4)
+          Imagens (JPG, PNG, WEBP)
         </p>
       </div>
 

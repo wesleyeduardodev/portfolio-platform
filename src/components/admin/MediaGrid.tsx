@@ -18,9 +18,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Star, Trash2, GripVertical } from "lucide-react";
+import { Star, Trash2, GripVertical, Play } from "lucide-react";
 import type { Media } from "@prisma/client";
 import { cn } from "@/lib/utils";
+import { extractYouTubeId, getYouTubeThumbnail } from "@/lib/youtube";
 
 interface MediaGridProps {
   media: Media[];
@@ -66,13 +67,30 @@ function SortableMediaItem({
         isCover && "ring-2 ring-accent ring-offset-2"
       )}
     >
-      <Image
-        src={item.thumbnailUrl || item.url}
-        alt={item.altText || item.fileName}
-        fill
-        className="object-cover"
-        sizes="150px"
-      />
+      {(() => {
+        const isYouTube = item.type === "VIDEO" && item.mimeType === "video/youtube";
+        const thumbSrc = isYouTube
+          ? item.thumbnailUrl || getYouTubeThumbnail(extractYouTubeId(item.url) || "")
+          : item.thumbnailUrl || item.url;
+        return (
+          <>
+            <Image
+              src={thumbSrc}
+              alt={item.altText || item.fileName}
+              fill
+              className="object-cover"
+              sizes="150px"
+            />
+            {isYouTube && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="rounded-full bg-red-600 p-2">
+                  <Play className="h-4 w-4 text-white fill-white" />
+                </div>
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {/* Drag handle */}
       <button
@@ -126,6 +144,10 @@ export function MediaGrid({
 }: MediaGridProps) {
   const [items, setItems] = useState(media);
   const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setItems(media);
+  }, [media]);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
@@ -154,17 +176,30 @@ export function MediaGrid({
   if (!mounted) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-        {items.map((item) => (
-          <div key={item.id} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-            <Image
-              src={item.thumbnailUrl || item.url}
-              alt={item.altText || item.fileName}
-              fill
-              className="object-cover"
-              sizes="150px"
-            />
-          </div>
-        ))}
+        {items.map((item) => {
+          const isYouTube = item.type === "VIDEO" && item.mimeType === "video/youtube";
+          const thumbSrc = isYouTube
+            ? item.thumbnailUrl || getYouTubeThumbnail(extractYouTubeId(item.url) || "")
+            : item.thumbnailUrl || item.url;
+          return (
+            <div key={item.id} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src={thumbSrc}
+                alt={item.altText || item.fileName}
+                fill
+                className="object-cover"
+                sizes="150px"
+              />
+              {isYouTube && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="rounded-full bg-red-600 p-2">
+                    <Play className="h-4 w-4 text-white fill-white" />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   }

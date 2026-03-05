@@ -67,7 +67,7 @@ model Media {
   project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   type           MediaType
   url            String
-  s3Key          String    @map("s3_key")
+  s3Key          String?   @map("s3_key")
   thumbnailUrl   String?   @map("thumbnail_url")
   fileName       String    @map("file_name")
   fileSize       Int       @map("file_size")

@@ -19,7 +19,7 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const body = await req.json();
-  const { url, s3Key, fileName, fileSize, mimeType, width, height, type } = body;
+  const { url, s3Key, fileName, fileSize, mimeType, width, height, type, thumbnailUrl } = body;
 
   const maxSort = await prisma.media.aggregate({
     where: { projectId },
@@ -31,7 +31,8 @@ export async function POST(req: Request, { params }: Params) {
       projectId,
       type: type || "IMAGE",
       url,
-      s3Key,
+      s3Key: s3Key || null,
+      thumbnailUrl: thumbnailUrl || null,
       fileName,
       fileSize,
       mimeType,
