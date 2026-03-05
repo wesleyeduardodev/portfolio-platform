@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { X, MapPin, Calendar, Grid3X3, Play } from "lucide-react";
+import { X, MapPin, Calendar, Grid3X3, Play, Download, Loader2 } from "lucide-react";
 import type { ProjectWithMedia } from "@/types";
 import { MediaViewer } from "./MediaViewer";
 import { extractYouTubeId, getYouTubeThumbnail } from "@/lib/youtube";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 interface ProjectModalProps {
   project: ProjectWithMedia;
@@ -15,6 +17,7 @@ interface ProjectModalProps {
 
 export function ProjectModal({ project, onClose }: ProjectModalProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -32,6 +35,33 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
   }, [onClose, lightboxIndex]);
 
   const heroUrl = project.coverMedia?.url || project.media[0]?.url;
+
+  const downloadableMedia = project.media.filter(
+    (m) => !(m.type === "VIDEO" && m.mimeType === "video/youtube")
+  );
+
+  async function handleDownloadAll() {
+    if (downloading || downloadableMedia.length === 0) return;
+    setDownloading(true);
+    try {
+      const zip = new JSZip();
+      const blobs = await Promise.all(
+        downloadableMedia.map(async (m) => {
+          const res = await fetch(m.url);
+          return { blob: await res.blob(), name: m.fileName };
+        })
+      );
+      for (const { blob, name } of blobs) {
+        zip.file(name, blob);
+      }
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, `${project.title}.zip`);
+    } catch (err) {
+      console.error("Erro ao gerar ZIP:", err);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <>
@@ -119,6 +149,28 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                 </span>
                 <div className="h-px flex-1 bg-accent/30" />
               </div>
+
+              {downloadableMedia.length > 0 && (
+                <div className="mb-4 flex justify-end">
+                  <button
+                    onClick={handleDownloadAll}
+                    disabled={downloading}
+                    className="inline-flex items-center gap-2 rounded-full bg-accent/15 px-4 py-2 text-xs font-medium text-accent hover:bg-accent/25 transition disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
+                    {downloading ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Preparando...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-3.5 w-3.5" />
+                        Baixar fotos
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {[...project.media]
