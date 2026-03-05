@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Plus,
   Trash2,
@@ -24,6 +24,66 @@ const typeOptions = [
   { value: "OTHER", label: "Outro", icon: ExternalLink },
 ] as const;
 
+/** Aplica máscara (XX) XXXXX-XXXX ou (XX) XXXX-XXXX */
+function phoneMask(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10)
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+/** Extrai só dígitos de um valor mascarado */
+function onlyDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+/** Gera URL automaticamente com base no tipo e valor */
+function autoUrl(type: string, value: string): string {
+  const digits = onlyDigits(value);
+  switch (type) {
+    case "WHATSAPP":
+      return digits ? `https://wa.me/55${digits}` : "";
+    case "PHONE":
+      return digits ? `tel:+55${digits}` : "";
+    case "EMAIL":
+      return value ? `mailto:${value}` : "";
+    case "INSTAGRAM": {
+      const handle = value.replace(/^@/, "").trim();
+      return handle ? `https://instagram.com/${handle}` : "";
+    }
+    default:
+      return "";
+  }
+}
+
+/** Retorna label padrão para o tipo */
+function defaultLabel(type: string): string {
+  const opt = typeOptions.find((t) => t.value === type);
+  return opt?.label || "";
+}
+
+/** Retorna placeholder para o campo Valor */
+function valuePlaceholder(type: string): string {
+  switch (type) {
+    case "WHATSAPP":
+    case "PHONE":
+      return "(11) 99999-9999";
+    case "EMAIL":
+      return "contato@email.com";
+    case "INSTAGRAM":
+      return "@usuario";
+    default:
+      return "Valor";
+  }
+}
+
+/** Verifica se o tipo usa máscara de telefone */
+function isPhoneType(type: string): boolean {
+  return type === "WHATSAPP" || type === "PHONE";
+}
+
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +98,7 @@ export default function ContactsPage() {
 
   // New contact form
   const [newType, setNewType] = useState<string>("WHATSAPP");
-  const [newLabel, setNewLabel] = useState("");
+  const [newLabel, setNewLabel] = useState("WhatsApp");
   const [newValue, setNewValue] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [adding, setAdding] = useState(false);
@@ -50,11 +110,49 @@ export default function ContactsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Auto-generate URL when value changes (new contact)
+  const updateNewValue = useCallback(
+    (raw: string) => {
+      const val = isPhoneType(newType) ? phoneMask(raw) : raw;
+      setNewValue(val);
+      setNewUrl(autoUrl(newType, val));
+    },
+    [newType]
+  );
+
+  // Auto-generate URL when value changes (edit contact)
+  const updateEditValue = useCallback(
+    (raw: string) => {
+      const val = isPhoneType(editType) ? phoneMask(raw) : raw;
+      setEditValue(val);
+      setEditUrl(autoUrl(editType, val));
+    },
+    [editType]
+  );
+
+  function handleNewTypeChange(type: string) {
+    setNewType(type);
+    setNewLabel(defaultLabel(type));
+    setNewValue("");
+    setNewUrl("");
+  }
+
+  function handleEditTypeChange(type: string) {
+    setEditType(type);
+    setEditLabel(defaultLabel(type));
+    setEditValue("");
+    setEditUrl("");
+  }
+
   function startEditing(contact: Contact) {
     setEditingId(contact.id);
     setEditType(contact.type);
     setEditLabel(contact.label);
-    setEditValue(contact.value);
+    // Show masked value for phone types
+    const val = isPhoneType(contact.type)
+      ? phoneMask(contact.value)
+      : contact.value;
+    setEditValue(val);
     setEditUrl(contact.url || "");
   }
 
@@ -62,9 +160,16 @@ export default function ContactsPage() {
     setEditingId(null);
   }
 
+  /** Valor para salvar no banco (sem máscara para telefones) */
+  function saveValue(type: string, displayValue: string): string {
+    return isPhoneType(type) ? onlyDigits(displayValue) : displayValue;
+  }
+
   async function saveEdit(contact: Contact) {
     if (!editLabel || !editValue) return;
     setSaving(contact.id);
+
+    const cleanValue = saveValue(editType, editValue);
 
     const res = await fetch("/api/contacts", {
       method: "PUT",
@@ -73,7 +178,7 @@ export default function ContactsPage() {
         id: contact.id,
         type: editType,
         label: editLabel,
-        value: editValue,
+        value: cleanValue,
         url: editUrl || "",
         isVisible: contact.isVisible,
       }),
@@ -83,7 +188,13 @@ export default function ContactsPage() {
       setContacts((prev) =>
         prev.map((c) =>
           c.id === contact.id
-            ? { ...c, type: editType as Contact["type"], label: editLabel, value: editValue, url: editUrl || null }
+            ? {
+                ...c,
+                type: editType as Contact["type"],
+                label: editLabel,
+                value: cleanValue,
+                url: editUrl || null,
+              }
             : c
         )
       );
@@ -96,13 +207,15 @@ export default function ContactsPage() {
     if (!newLabel || !newValue) return;
     setAdding(true);
 
+    const cleanValue = saveValue(newType, newValue);
+
     const res = await fetch("/api/contacts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: newType,
         label: newLabel,
-        value: newValue,
+        value: cleanValue,
         url: newUrl || undefined,
         isVisible: true,
       }),
@@ -111,7 +224,6 @@ export default function ContactsPage() {
     if (res.ok) {
       const contact = await res.json();
       setContacts((prev) => [...prev, contact]);
-      setNewLabel("");
       setNewValue("");
       setNewUrl("");
     }
@@ -150,6 +262,12 @@ export default function ContactsPage() {
     setSaving(null);
   }
 
+  /** Formata o valor para exibição na lista */
+  function displayValue(contact: Contact): string {
+    if (isPhoneType(contact.type)) return phoneMask(contact.value);
+    return contact.value;
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -160,7 +278,9 @@ export default function ContactsPage() {
 
   return (
     <div>
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">Contatos</h1>
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
+        Contatos
+      </h1>
 
       {/* Existing contacts */}
       <div className="space-y-2 mb-8">
@@ -177,19 +297,25 @@ export default function ContactsPage() {
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Tipo</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                      Tipo
+                    </label>
                     <select
                       value={editType}
-                      onChange={(e) => setEditType(e.target.value)}
+                      onChange={(e) => handleEditTypeChange(e.target.value)}
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
                     >
                       {typeOptions.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Label</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                      Label
+                    </label>
                     <input
                       value={editLabel}
                       onChange={(e) => setEditLabel(e.target.value)}
@@ -197,19 +323,25 @@ export default function ContactsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Valor</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                      Valor
+                    </label>
                     <input
                       value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
+                      onChange={(e) => updateEditValue(e.target.value)}
                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                      placeholder={valuePlaceholder(editType)}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">URL (opcional)</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">
+                      URL{" "}
+                      <span className="text-gray-300">(auto-gerada)</span>
+                    </label>
                     <input
                       value={editUrl}
                       onChange={(e) => setEditUrl(e.target.value)}
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary bg-gray-50 text-gray-500"
                       placeholder="https://..."
                     />
                   </div>
@@ -250,7 +382,7 @@ export default function ContactsPage() {
                   {contact.label}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
-                  {contact.value}
+                  {displayValue(contact)}
                 </p>
               </div>
               <button
@@ -271,8 +403,8 @@ export default function ContactsPage() {
                 {saving === contact.id
                   ? "..."
                   : contact.isVisible
-                  ? "Visível"
-                  : "Oculto"}
+                    ? "Visível"
+                    : "Oculto"}
               </button>
               <button
                 onClick={() => deleteContact(contact.id)}
@@ -297,7 +429,7 @@ export default function ContactsPage() {
             </label>
             <select
               value={newType}
-              onChange={(e) => setNewType(e.target.value)}
+              onChange={(e) => handleNewTypeChange(e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary"
             >
               {typeOptions.map((t) => (
@@ -324,19 +456,20 @@ export default function ContactsPage() {
             </label>
             <input
               value={newValue}
-              onChange={(e) => setNewValue(e.target.value)}
+              onChange={(e) => updateNewValue(e.target.value)}
               className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary"
-              placeholder="Ex: 11999999999"
+              placeholder={valuePlaceholder(newType)}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              URL (opcional)
+              URL{" "}
+              <span className="text-gray-400 text-xs">(auto-gerada)</span>
             </label>
             <input
               value={newUrl}
               onChange={(e) => setNewUrl(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary bg-gray-50 text-gray-500"
               placeholder="https://..."
             />
           </div>
