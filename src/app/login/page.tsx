@@ -28,7 +28,7 @@ export default function LoginPage() {
       setError("Email ou senha incorretos");
       setLoading(false);
     } else {
-      router.push("/admin");
+      router.push("/admin/profile");
     }
   }
 
