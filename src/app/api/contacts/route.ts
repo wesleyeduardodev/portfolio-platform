@@ -69,6 +69,29 @@ export async function PUT(req: Request) {
   return NextResponse.json({ ok: true });
 }
 
+export async function PATCH(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = await req.json();
+  const { items } = body as { items: { id: string; sortOrder: number }[] };
+
+  if (!items || !Array.isArray(items))
+    return NextResponse.json({ error: "items required" }, { status: 400 });
+
+  await prisma.$transaction(
+    items.map((item) =>
+      prisma.contact.updateMany({
+        where: { id: item.id, userId: session.user!.id },
+        data: { sortOrder: item.sortOrder },
+      })
+    )
+  );
+
+  return NextResponse.json({ ok: true });
+}
+
 export async function DELETE(req: Request) {
   const session = await auth();
   if (!session?.user?.id)
