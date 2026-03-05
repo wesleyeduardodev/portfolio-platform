@@ -13,6 +13,7 @@ import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { MediaUploader } from "./MediaUploader";
 import { MediaGrid } from "./MediaGrid";
 import { YouTubeInput } from "./YouTubeInput";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 interface ProjectFormProps {
   project?: ProjectWithMedia;
@@ -22,6 +23,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [deleteMediaId, setDeleteMediaId] = useState<string | null>(null);
   const isEditing = !!project;
 
   const {
@@ -245,20 +247,32 @@ export function ProjectForm({ project }: ProjectFormProps) {
                     });
                     router.refresh();
                   }}
-                  onDelete={async (mediaId) => {
-                    if (!confirm("Excluir esta mídia?")) return;
-                    await fetch(
-                      `/api/projects/${project.id}/media?mediaId=${mediaId}`,
-                      { method: "DELETE" }
-                    );
-                    router.refresh();
-                  }}
+                  onDelete={(mediaId) => setDeleteMediaId(mediaId)}
                 />
               </div>
             )}
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteMediaId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteMediaId(null); }}
+        title="Excluir mídia"
+        description="Tem certeza que deseja excluir esta mídia? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        variant="danger"
+        onConfirm={async () => {
+          if (!deleteMediaId || !project) return;
+          await fetch(
+            `/api/projects/${project.id}/media?mediaId=${deleteMediaId}`,
+            { method: "DELETE" }
+          );
+          setDeleteMediaId(null);
+          router.refresh();
+        }}
+      />
     </div>
   );
 }
